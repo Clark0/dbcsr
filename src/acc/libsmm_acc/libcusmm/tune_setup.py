@@ -170,35 +170,17 @@ def gen_jobfile(outdir, m, n, k, cpus_per_node=12, max_num_nodes=0):
         num_nodes = len(all_exe)
 
     output = "#!/bin/bash -l\n"
-    output += "#SBATCH --nodes=%d\n" % num_nodes
-    output += "#SBATCH --ntasks-per-core=1\n"
-    output += "#SBATCH --ntasks-per-node=1\n"
-    output += "#SBATCH --cpus-per-task=" + "%d\n" % cpus_per_node
-    if num_nodes < 3:
-        output += "#SBATCH --time=1:30:00\n"
-    else:
-        output += "#SBATCH --time=0:30:00\n"
-    output += "#SBATCH --account=s238\n"
-    output += "#SBATCH --partition=normal\n"
-    output += "#SBATCH --constraint=gpu\n"
-    output += "\n"
-    output += "source ${MODULESHOME}/init/sh;\n"
-    output += "module load daint-gpu\n"
-    output += "module unload PrgEnv-cray\n"
-    output += "module load PrgEnv-gnu/6.0.3\n"
-    output += "module load cudatoolkit/8.0.54_2.2.8_ga620558-2.1\n"
     output += "module list\n"
-    output += "export CRAY_CUDA_MPS=1\n"
-    output += "cd $SLURM_SUBMIT_DIR \n"
+    output += "module load cuda/10.0\n"
+    output += "module load openmpi/3.1.2-gcc\n"
+    output += "module list\n"
     output += "\n"
     output += "date\n"
 
     # Compilation
     num_nodes_busy = 0
     for exe in all_exe:
-        output += (
-            "srun --nodes=1 --bcast=/tmp/${USER} --ntasks=1 --ntasks-per-node=1 --cpus-per-task=%d make -j %d %s &\n" %
-            (cpus_per_node, 2 * cpus_per_node, exe))
+        output += ("make -j %d %s &\n" % (2 * cpus_per_node, exe))
         num_nodes_busy += 1
         if num_nodes_busy == num_nodes:
             output += "wait\n"
@@ -210,7 +192,7 @@ def gen_jobfile(outdir, m, n, k, cpus_per_node=12, max_num_nodes=0):
 
     # Execution
     for exe in all_exe:
-        output += ("srun --nodes=1 --bcast=/tmp/${USER} --ntasks=1 --ntasks-per-node=1 --cpus-per-task=1 ./" + exe +
+        output += ("./" + exe +
                    " >" + exe + ".log 2>&1 & \n")
         num_nodes_busy += 1
         if num_nodes_busy == num_nodes:

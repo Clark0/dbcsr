@@ -30,9 +30,9 @@ def main(submit_jobs):
         if not path.isdir(d):
             continue
 
-        if len(glob(d + "/slurm-*.out")) > 0:
-            print("%20s: Found slurm file(s)" % d)
-            continue
+        #if len(glob(d + "/slurm-*.out")) > 0:
+        #    print("%20s: Found slurm file(s)" % d)
+        #    continue
 
         if d in submitted:
             print("%20s: Found submitted job" % d)
@@ -41,7 +41,7 @@ def main(submit_jobs):
         n_submits += 1
         if submit_jobs:
             print("%20s: Submitting" % d)
-            assert os.system("cd %s; sbatch *.job" % d) == 0
+            assert os.system("cd %s; bash *.job" % d) == 0
         else:
             if len(glob(d + "/*.job")) == 1:
                 print('%20s: Would submit, run with "doit!"' % d)
